@@ -8,7 +8,6 @@
     1. Client Side React App : 
     
     ```
-    ```
     └── 📁client
         └── package-lock.json
         └── package.json
@@ -24,11 +23,9 @@
             └── index.js
         └── tailwind.config.js
     ```
-    ```
     
     b. server side api 
     
-    ```
     ```
     └── 📁server
         └── .env
@@ -36,7 +33,6 @@
         └── package-lock.json
         └── package.json
         └── test.js
-    ```
     ```
     
 
@@ -55,8 +51,6 @@ Instructions :
     1. install npm dependencies : `npm install`
 5. Run app and server 
     1. First run server (from server directory root ) : `node index.js`
-        
-        ![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/e0ac58ca-1339-487b-9443-b4c38dcd0e51/266a6df8-c147-4b2b-9b8f-4366d14babe0/Untitled.png)
         
     2. Then run React app (from client directory ) :  `npm start`
         
