@@ -3,7 +3,6 @@ const app = express();
 var cors = require('cors')
 var bodyParser = require('body-parser')
 require('dotenv').config();
-console.log(process.env.STRIPE_SECRET_KEY);
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 app.use(cors())
 app.use(bodyParser.json())
@@ -33,7 +32,7 @@ app.get('/api/makepayment', async (req, res) => {
     //Step 2: Confirm the payment intent with retrun_url as additional parameter
     const paymentIntentConfirm = await stripe.paymentIntents.confirm(
       paymentIntent.id,
-      {return_url: 'http://localhost:3000/api/success'}
+      {return_url: 'http://localhost:3000/api/transactionstatus'}
     );
 
     //Step 3: Make successful attempt to 3DS autehntication. (visit the redirect_to url in the browser)
@@ -54,7 +53,11 @@ app.post('/api/capturepayment', async (req, res) => {
     for (const key in paymentIntentIds) {
       const paymentIntent = await stripe.paymentIntents.capture(paymentIntentIds[key]);
       //console.log(paymentIntent);
-      captureResponse.push(paymentIntent.status);
+      let response_object = {
+        paymentIntentId : paymentIntent.id,
+        status : paymentIntent.status
+      }
+      captureResponse.push(response_object);
     }
     res.json({ status: captureResponse });
   }); 
@@ -66,8 +69,11 @@ app.post('/api/capturepayment', async (req, res) => {
     const captureResponse = [];
     for (const key in paymentIntentIds) {
       const paymentIntent = await stripe.paymentIntents.cancel(paymentIntentIds[key]);
-      //console.log(paymentIntent);
-      captureResponse.push(paymentIntent.status);
+      let response_object = {
+        paymentIntentId : paymentIntent.id,
+        status : paymentIntent.status
+      }
+      captureResponse.push(response_object);
     }
     res.json({ status: captureResponse });
   }); 
@@ -86,9 +92,15 @@ app.post('/api/capturepayment', async (req, res) => {
     res.json({ status: status });
   });
 
-app.get('/api/success', (req, res) => {
-    res.send('Payment Successfull');
-  });
+  app.get('/api/transactionstatus', async (req, res) => {
+    // Making a single Successful Payment from Stripe API with Express Server has multiple steps
+    //console.log(req.body);
+    //console.log(req.query);
+    const paymentIntent = await stripe.paymentIntents.retrieve(req.query.payment_intent);
+    //console.log(paymentIntent);
+    res.send('Redirecting Back ..... ');
+});
+
 
 app.get('/' , (req, res) => {
     res.send('Hello World');
