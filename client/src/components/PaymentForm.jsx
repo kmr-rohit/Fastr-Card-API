@@ -1,24 +1,143 @@
 import React ,{useState} from 'react'
 import axios from "axios";
 const baseApiUrl = 'http://localhost:3000/api';
-function cardForm() {
-  // create a card form to accept card details with tailwind css 
+
+function CardDetailsForm({ onAddCard }) {
+  const [cardNumber, setCardNumber] = useState('');
+  const [nameOnCard, setNameOnCard] = useState('');
+  const [cvv, setCvv] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+
+  const validateCardNumber = (number) => {
+    const regex = /^[0-9]{16}$/; // Simple validation for 16 digit card number
+    return regex.test(number);
+  };
+  const handleSubmit = () => {
+    if (!validateCardNumber(cardNumber)) {
+      alert('Invalid card number. Card number should be 16 digits.');
+      return;
+    }
+    
+    onAddCard({ cardNumber, nameOnCard, cvv, expiryDate });
+    // Clear form fields after adding
+    setCardNumber('');
+    setNameOnCard('');
+    setCvv('');
+    setExpiryDate('');
+  };
+
   return (
-    <div className='m-[50px]'>
-      <form className='flex flex-col space-y-4'>
-        <label className='text-gray-700 dark:text-gray-300'>Card Number</label>
-        <input type='text' className='border-2 border-gray-300 rounded-lg p-2 dark:border-gray-600' placeholder='Enter Card Number'/>
-        <label className='text-gray-700 dark:text-gray-300'>Expiry Date</label>
-        <input type='text' className='border-2 border-gray-300 rounded-lg p-2 dark:border-gray-600' placeholder='Enter Expiry Date'/>
-        <label className='text-gray-700 dark:text-gray-300'>CVV</label>
-        <input type='text' className='border-2 border-gray-300 rounded-lg p-2 dark:border-gray-600' placeholder='Enter CVV'/>
-        <button className='text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800'>Pay Now</button>
-      </form>
+    <div>
+      <div className="mb-4">
+        <label className="block mb-2">Card Number</label>
+        <input
+          type="number"
+          className="w-full px-4 py-2 border rounded"
+          placeholder="Card Number"
+          value={cardNumber}
+          onChange={(e) => setCardNumber(e.target.value)}
+          maxLength="16"
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block mb-2">Name on Card</label>
+        <input
+          type="text"
+          className="w-full px-4 py-2 border rounded"
+          placeholder="Name on Card"
+          value={nameOnCard}
+          onChange={(e) => setNameOnCard(e.target.value)}
+        />
+      </div>
+      <div className="flex mb-4">
+        <div className="w-1/2 mr-2">
+          <label className="block mb-2">CVV</label>
+          <input
+          type="text"
+          className="w-full px-4 py-2 border rounded"
+          placeholder="CVV"
+          value={cvv}
+          onChange={(e) => setCvv(e.target.value)}
+        />
+        </div>
+        <div className="w-1/2 ml-2">
+          <label className="block mb-2">Expiry Date</label>
+          <input
+            type="text"
+            className="w-full px-4 py-2 border rounded"
+            placeholder="Expiry Date (MM/YY)"
+            value={expiryDate}
+            onChange={(e) => setExpiryDate(e.target.value)}
+          />
+        </div>
+      </div>
+      {/* Add Button */}
+      <button onClick={handleSubmit} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700 transition duration-300">
+        Add Card
+      </button>
+      {/* Add Another Card Button */}
+      {/* <button className="ml-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 transition duration-300">
+        Add Another Card
+      </button> */}
     </div>
-  )
+  );
 }
 
- function PaymentForm() {
+function UPIForm({ onAddUPI }) {
+  const [upiId, setUpiId] = useState('');
+
+  const handleSubmit = () => {
+    onAddUPI({ upiId });
+    setUpiId(''); // Clear UPI ID field after adding
+  };
+  return (
+    <div>
+      <div className="mb-4">
+        <label className="block mb-2">UPI ID</label>
+        <input
+          type="text"
+          className="w-full px-4 py-2 border rounded"
+          placeholder="UPI ID"
+          value={upiId}
+          onChange={(e) => setUpiId(e.target.value)}
+        />
+        <button onClick={handleSubmit} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700 transition duration-300">
+          Add UPI ID
+        </button>
+      </div>
+    </div>
+  );
+}
+function AddedCardasTile({ card, onRemove }) {
+  return (
+    <div className="flex items-center justify-between border p-4 rounded mb-4 shadow-lg">
+      <div>
+        <h3 className="text-lg font-bold">VISA **** {card.cardNumber.slice(-4)}</h3>
+        <p className="text-sm">Expiry: {card.expiryDate}</p>
+        <p className="text-sm">Name: {card.nameOnCard}</p>
+      </div>
+      <button onClick={() => onRemove(card)} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+        Remove
+      </button>
+    </div>
+  );
+}
+
+function AddedUPIasTile({ upi, onRemove }) {
+  return (
+    <div className="flex items-center justify-between border p-4 rounded mb-4 shadow-lg">
+      <div>
+        <h3 className="text-lg font-bold">{upi.upiId}</h3>
+      </div>
+      <button onClick={() => onRemove(upi)} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+        Remove
+      </button>
+    </div>
+  );
+}
+
+
+function PaymentForm() {
   const [openModal, setOpenModal] = useState(false);
   const [transactionStatusArray, setTransactionStatusArray] = useState(null);
 
@@ -138,6 +257,7 @@ async function makeUPIpayment() {
   }
   
 }
+
 async function makeCardAndUPIPayment() {
   try {
     const cardPaymentUrl = baseApiUrl + '/makepayment' + '?payment_method=pm_card_visa';
@@ -280,15 +400,113 @@ async function checkStatusandTakeAction(responses) {
     setTransactionStatusArray(null);
     setOpenModal(false);
   }
+  const [paymentMethods, setPaymentMethods] = useState([
+    { payment_method_type: 'card', selected: true },
+    { payment_method_type: 'upi', selected: false }
+  ]);
+  const [addedCards, setAddedCards] = useState([]);
+  const [addedUPIs, setAddedUPIs] = useState([]);
+
+  const handleAddCard = (cardDetails) => {
+    setAddedCards([...addedCards, cardDetails]);
+  };
+
+  const handleAddUPI = (upiDetails) => {
+    setAddedUPIs([...addedUPIs, upiDetails]);
+  };
+
+  const handleRemoveCard = (cardToRemove) => {
+    setAddedCards(addedCards.filter(card => card.cardNumber !== cardToRemove.cardNumber));
+  };
+
+  const handleRemoveUPI = (upiToRemove) => {
+    setAddedUPIs(addedUPIs.filter(upi => upi.upiId !== upiToRemove.upiId));
+  };
+
+  const handleExportPaymentMethods = () => {
+    //console.log(addedCards);
+    //console.log(addedUPIs);
+    if(addedCards.length === 0 && addedUPIs.length === 0) {
+      alert('Please add atleast one payment method to proceed');
+      return;
+    }
+    if(addedCards.length == 1 && addedUPIs.length  == 1) {
+      makeCardAndUPIPayment();
+    }
+    if(addedCards.length == 2 && addedUPIs.length  == 0) {
+      makeSamePayment();
+    }
+  };
 
   return (
-    
     <div className='m-[50px]'>
-       {/* {cardForm()}  */}
-      <button onClick={makeSamePayment} className='text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800'>Pay Now(Same Brand - 2 cards)</button>
-      <button onClick={makeDiffPayment} className='text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800'>Pay Now(2 Cards - 1 Failure)</button>
-      {/* <button onClick={makeUPIpayment} className='text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800'>Pay Now(1 upi)</button> */}
-      <button onClick={makeCardAndUPIPayment} className='text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800'>Pay Now(1Card & 1 UPI)</button>
+      {/* // Payment Gateway */}
+      <div className='flex flex-row w-full'>
+    <div className="container mx-auto p-4">
+      <div className="flex flex-col md:flex-row justify-between items-center">
+        {/* Left Part */}
+        <div className="w-full md:w-1/2 mb-4">
+            <label className="block mb-2">Select Payment Method</label>
+            <div className="relative">
+              {paymentMethods.map((method, index) => (
+                <div key={index} className="flex items-center mb-2">
+                  <input
+                    id={`payment-method-${index}`}
+                    type="checkbox"
+                    className="form-checkbox h-5 w-5 text-green-600"
+                    checked={method.selected}
+                    onChange={() => {
+                      const newMethods = [...paymentMethods];
+                      newMethods[index].selected = !newMethods[index].selected;
+                      setPaymentMethods(newMethods);
+                    }}
+                  />
+                  <label htmlFor={`payment-method-${index}`} className="ml-2 text-gray-700">
+                    {method.payment_method_type.toUpperCase()}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+      </div>
+    </div>
+     <div className="container mx-auto p-4 ">
+     {paymentMethods.find(method => method.payment_method_type === 'card' && method.selected) && (
+          <CardDetailsForm onAddCard={handleAddCard} />
+        )}
+        {paymentMethods.find(method => method.payment_method_type === 'upi' && method.selected) && (
+          <UPIForm onAddUPI={handleAddUPI} />
+        )}
+   </div>
+   </div>
+   <div className="w-full">
+     <h2 className="text-2xl font-semibold text-gray-800 mb-4">Your Added Payment Methods</h2>
+     <div className="bg-gray-100 p-4 rounded-lg shadow">
+       <h3 className="text-xl font-semibold text-gray-700 mb-3">Added Cards</h3>
+       {addedCards.length > 0 ? (
+         addedCards.map((card, index) => (
+            <AddedCardasTile key={index} card={card} onRemove={handleRemoveCard} />
+         ))
+       ) : (
+         <p className="text-gray-600">No cards added yet.</p>
+       )}
+     </div>
+     <div className="bg-gray-100 p-4 rounded-lg shadow mt-6">
+       <h3 className="text-xl font-semibold text-gray-700 mb-3">Added UPI IDs</h3>
+       {addedUPIs.length > 0 ? (
+         addedUPIs.map((upi, index) => (
+          <AddedUPIasTile key={index} upi={upi} onRemove={handleRemoveUPI} />
+         ))
+       ) : (
+         <p className="text-gray-600">No UPI IDs added yet.</p>
+       )}
+     </div>
+     <div className="container mx-auto p-4 ">
+        <button onClick={handleExportPaymentMethods} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 transition duration-300">
+          PAY Now
+        </button>
+      </div>
+  </div>
       {openModal && (
         <div className="fixed inset-0 z-50 overflow-auto bg-gray-900 bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-8 max-w-md mx-auto rounded-md text-center">
